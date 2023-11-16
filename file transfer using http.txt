@@ -1,0 +1,74 @@
+HTTP SERVER:
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import java.io.*;
+import java.net.InetSocketAddress;
+public class HttpFileServer {
+    public static void main(String[] args) throws IOException {
+        int port = 8080;
+HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+server.createContext("/upload", new HttpHandler() {
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+                try (InputStreaminputStream = exchange.getRequestBody();
+OutputStreamoutputStream = new FileOutputStream("received_file.txt")) {
+byte[] buffer = new byte[4096];
+                    int bytesRead;
+                    while ((bytesRead = inputStream.read(buffer)) != -1) {
+outputStream.write(buffer, 0, bytesRead);
+                    }
+                }
+                String response = "File received successfully.";
+exchange.sendResponseHeaders(200, response.length());
+                try (OutputStreamos = exchange.getResponseBody()) {
+os.write(response.getBytes());
+                }
+                try (BufferedReader reader = new BufferedReader(new FileReader("received_file.txt"))) {
+                    String line;
+System.out.println("Contents of received file:");
+                    while ((line = reader.readLine()) != null) {
+System.out.println(line);
+                    }}
+                try (BufferedReader reader = new BufferedReader(new FileReader("received_file.txt")))
+                      {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                    }
+                }
+System.out.println("Contents of received file stored in 'received_file.txt'.");
+            }
+        });
+server.start();
+System.out.println("HTTP Server started on port " + port);
+    }}
+
+HTTP CLIENT:
+import java.io.*;
+import java.net.*;
+public class HttpClient {
+    public static void main(String[] args) throws IOException {
+        String serverAddress = "http://localhost:8080/upload";
+        String filePath = "sample.txt";
+        try {
+            URL url = new URL(serverAddress);
+HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+connection.setRequestMethod("POST");
+connection.setDoOutput(true);
+            try (OutputStreamoutputStream = connection.getOutputStream();
+FileInputStreamfileInputStream = new FileInputStream(filePath)) {
+byte[] buffer = new byte[4096];
+                int bytesRead;
+                while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+outputStream.write(buffer, 0, bytesRead);
+                }
+            }
+            int responseCode = connection.getResponseCode();
+            if (responseCode == 200) {
+System.out.println("File sent successfully.");
+            } else {
+System.err.println("File transfer failed. Server returned: " + responseCode);
+            }
+        } catch (IOException e) {
+e.printStackTrace();
+        } }}

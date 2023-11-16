@@ -1,0 +1,42 @@
+SOURCE CODE:
+SERVER:
+import java.io.*;
+import java.net.*;
+import java.util.Scanner;
+public class tcpserver {
+        public static void main(String[] args) throws IOException {
+         ServerSocketserverSocket = new ServerSocket(8000);
+        Socket socket = serverSocket.accept();
+        DataInputStreaminputFromClient = new
+        DataInputStream(socket.getInputStream());
+        DataOutputStreamoutputToClient = new
+        DataOutputStream(socket.getOutputStream());
+        Scanner sc = new Scanner(System.in);
+        String msg;
+        while (true) {
+        msg = inputFromClient.readUTF();
+        System.out.println("Client says:" + msg);
+        System.out.println("Enter message:");
+        msg = sc.nextLine();
+        outputToClient.writeUTF(msg);
+        }  }}
+CLIENT:
+import java.io.*;
+import java.net.Socket;
+import java.util.Scanner;
+public class tcpclient {
+        public static void main(String[] args) throws IOException {
+  Socket socket = new Socket("192.168.109.35", 8000);
+        DataInputStreamfromServer = new DataInputStream(socket.getInputStream());
+        DataOutputStreamtoServer = new DataOutputStream(socket.getOutputStream());
+        Scanner sc = new Scanner(System.in);
+        String msg;
+        while (true) {
+        System.out.println("Enter message:");
+        msg = sc.nextLine();
+        toServer.writeUTF(msg);
+        msg = fromServer.readUTF();
+        System.out.println("Server says:" + msg);
+        }
+   }
+}

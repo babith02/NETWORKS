@@ -1,0 +1,70 @@
+STOP AND WAIT:
+SERVER:
+import java.io.*;
+import java.net.*;
+public class StopAndWaitSender {
+    public static void main(String[] args) {
+        try {
+DatagramSocketsenderSocket = new DatagramSocket();
+InetAddressreceiverAddress = InetAddress.getByName("localhost");
+            int receiverPort = 9876;
+BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+           while (true) {
+System.out.print("Enter message to send (or type 'exit' to quit): ");
+                String message = in.readLine();
+                if (message.equals("exit")) {
+break;
+                }
+byte[] sendData = message.getBytes();
+DatagramPacketsendPacket = new DatagramPacket(sendData, sendData.length, receiverAddress, receiverPort);
+senderSocket.send(sendPacket);
+System.out.println("Sent: " + message);
+byte[] receiveData = new byte[1024];
+DatagramPacketreceivePacket = new DatagramPacket(receiveData, receiveData.length);
+senderSocket.receive(receivePacket);
+                String ack = new String(receivePacket.getData(), 0, receivePacket.getLength());
+System.out.println("Received ACK: " + ack);
+            }
+senderSocket.close();
+        } catch (Exception e) {
+e.printStackTrace();
+        }
+    }
+}
+
+
+RECEIVER:
+import java.io.*;
+import java.net.*;
+public class StopAndWaitReceiver
+ {
+    public static void main(String[] args) 
+{
+        try {
+DatagramSocketreceiverSocket = new DatagramSocket(9876);
+            while (true) {
+byte[] receiveData = new byte[1024];
+DatagramPacketreceivePacket = new DatagramPacket(receiveData, receiveData.length);
+receiverSocket.receive(receivePacket);
+                String message = new String(receivePacket.getData(), 0, receivePacket.getLength());
+if (message.equals("exit")) {
+break;
+                }
+System.out.println("Received: " + message);
+                if (Math.random() < 0.3) {
+System.out.println("Packet loss, sending NAK (Not Acknowledgment)");
+                } else {
+                    String ack = "ACK";
+byte[] sendData = ack.getBytes();
+DatagramPacketsendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), receivePacket.getPort());
+receiverSocket.send(sendPacket);
+System.out.println("Sent ACK");
+                }
+            }
+        } 
+catch (Exception e) 
+{
+e.printStackTrace();
+        }
+    }
+}

@@ -1,0 +1,57 @@
+SOURCE CODE:
+SERVER:
+import java.io.*;
+import java.net.*;
+public class TCPEchoServer {
+public static void main(String[] args) throws IOException {
+ServerSocketwelcomeSocket = new ServerSocket(6789);
+while(true) {
+Socket connectionSocket=welcomeSocket.accept();
+System.out.println("Connection received from: " + connectionSocket.getInetAddress());
+ClientHandlerch = new ClientHandler(connectionSocket);
+(new Thread(ch)).start();}}}
+class ClientHandler implements Runnable {
+private Socket connectionSocket;
+public ClientHandler(Socket socket) {
+connectionSocket = socket;}
+public void run() {
+try {
+String line, capitilizedLine;
+BufferedReaderinFromClient =new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
+DataOutputStreamoutToClient = new DataOutputStream(
+connectionSocket.getOutputStream());
+line = inFromClient.readLine();
+System.out.println("Received from client:" + line);
+capitilizedLine = line.toUpperCase() + "\n";
+outToClient.writeBytes(capitilizedLine);
+System.out.println("Message sent back to client!!!");
+inFromClient.close();
+outToClient.close();
+connectionSocket.close();
+} catch(Exception e) {  }
+}}
+
+
+
+
+CLIENT:
+import java.io.*;
+import java.net.*;
+public class TCPEchoClient {
+public static void main(String[] args) throws IOException {
+String line, capitilizedLine;
+Socket clientSocket = new Socket("localhost", 6789);
+System.out.println("Connected to: " + clientSocket.getInetAddress());	
+BufferedReaderinFromUser = new BufferedReader((new InputStreamReader(System.in)));
+BufferedReaderinFromServer = new BufferedReader(new InputStreamReader(
+clientSocket.getInputStream()));
+DataOutputStreamoutToServer = new DataOutputStream(clientSocket.getOutputStream());
+line = inFromUser.readLine();
+outToServer.writeBytes(line+"\n");
+capitilizedLine = inFromServer.readLine();
+System.out.println("Line received from server: " + capitilizedLine);
+inFromUser.close();
+inFromServer.close();
+outToServer.close();
+clientSocket.close();
+}}
