@@ -1,0 +1,37 @@
+import java.io.*;
+import java.net.*;
+
+public class CLIENT {
+    public static void main(String[] args) {
+        String serverAddress = "localhost"; // Change this to the IP address or hostname of your server
+        int serverPort = 12345; // Port on which the server is listening
+
+        try {
+            Socket socket = new Socket(serverAddress, serverPort);
+            System.out.println("Connected to server at " + serverAddress + ":" + serverPort);
+
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            String message;
+            while (true) {
+                System.out.print("Enter a message to send to the server (or 'exit' to quit): ");
+                message = userInput.readLine();
+
+                if (message.equalsIgnoreCase("exit")) {
+                    break;
+                }
+
+                out.println(message); // Send the message to the server
+                System.out.println("Received from server: " + in.readLine());
+            }
+
+            // Close the socket when done
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+

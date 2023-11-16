@@ -1,0 +1,41 @@
+import java.io.*;
+import java.net.*;
+
+class CLIENT2 {
+
+    public static void main(String args[]) throws Exception {
+
+        // Create client socket
+        Socket s = new Socket("localhost", 1289);
+
+        // To send data to the server
+        PrintWriter pw = new PrintWriter(s.getOutputStream(), true);
+
+        // To read data coming from the server
+        BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+
+        // To read data from the keyboard
+        BufferedReader kb = new BufferedReader(new InputStreamReader(System.in));
+
+        String str, str1;
+
+        // Repeat as long as "exit" is not typed at the client
+        while (!(str = kb.readLine()).equals("exit")) {
+
+            // Send to the server
+            pw.println(str);
+
+            // Receive from the server
+            str1 = br.readLine();
+
+            System.out.println("Server: " + str1);
+        }
+
+        // Close the connection.
+        pw.close();
+        br.close();
+        kb.close();
+        s.close();
+    }
+}
+

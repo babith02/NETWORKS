@@ -1,0 +1,40 @@
+import java.io.*;
+import java.net.*;
+
+class SERVER2 {
+
+    public static void main(String args[]) throws Exception {
+
+        // Create server Socket
+        ServerSocket ss = new ServerSocket(1289);
+
+        while (true) {
+            // Connect to a client socket
+            Socket s = ss.accept();
+            System.out.println("Connection established");
+
+            // Create input and output streams for this client
+            PrintStream ps = new PrintStream(s.getOutputStream());
+            BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream()));
+            BufferedReader kb = new BufferedReader(new InputStreamReader(System.in));
+
+            String str, str1;
+
+            // Read from client and respond
+            while ((str = br.readLine()) != null) {
+                System.out.println("Client: " + str);
+
+                // Read from the server's keyboard and send to the client
+                str1 = kb.readLine();
+                ps.println(str1);
+            }
+
+            // Close the streams and the client socket
+            br.close();
+            ps.close();
+            s.close();
+            System.out.println("Connection closed.");
+        }
+    }
+}
+
