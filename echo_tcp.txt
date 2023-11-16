@@ -1,0 +1,99 @@
+import java.io.*;
+import java.net.*;
+
+public class SimpleJavaServer {
+    public static void main(String[] args) {
+        ServerSocket serverSocket = null;
+        Socket newSocket = null;
+
+        try {
+            serverSocket = new ServerSocket(12342);
+            System.out.println("Server listening on port 12342...");
+
+            newSocket = serverSocket.accept();
+            System.out.println("Client connected.");
+
+            BufferedReader inFromClient = new BufferedReader(new InputStreamReader(newSocket.getInputStream()));
+            PrintWriter outToClient = new PrintWriter(newSocket.getOutputStream(), true);
+
+            String message;
+            while (true) {
+                message = inFromClient.readLine();
+
+                if (message == null) {
+                    System.out.println("Client disconnected.");
+                    break;
+                }
+
+                System.out.println("Received: " + message);
+
+                if (message.equals("exit")) {
+                    System.out.println("Client requested an exit.");
+                    break;
+                }
+
+                outToClient.println(message);
+            }
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        } finally {
+            try {
+                if (newSocket != null) {
+                    newSocket.close();
+                }
+                if (serverSocket != null) {
+                    serverSocket.close();
+                }
+            } catch (IOException e) {
+                System.err.println("Error closing sockets: " + e.getMessage());
+            }
+        }
+    }
+}
+
+
+
+
+
+
+import java.io.*;
+import java.net.*;
+
+public class SimpleJavaClient {
+    public static void main(String[] args) {
+        Socket clientSocket = null;
+        try {
+            clientSocket = new Socket("127.0.0.1", 12342);
+            System.out.println("Connected to server.");
+
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+            PrintWriter outToServer = new PrintWriter(clientSocket.getOutputStream(), true);
+            BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+            String message;
+            while (true) {
+                System.out.print("Enter a message: ");
+                message = userInput.readLine();
+                outToServer.println(message);
+
+                if (message.equals("exit")) {
+                    System.out.println("Exiting the client.");
+                    break;
+                }
+
+                String serverResponse = inFromServer.readLine();
+                System.out.println("Echo from server: " + serverResponse);
+            }
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        } finally {
+            try {
+                if (clientSocket != null) {
+                    clientSocket.close();
+                }
+            } catch (IOException e) {
+                System.err.println("Error closing socket: " + e.getMessage());
+            }
+        }
+    }
+}

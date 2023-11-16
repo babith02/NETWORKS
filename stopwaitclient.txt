@@ -1,0 +1,57 @@
+import java.io.*;
+import java.net.*;
+import java.nio.*;
+
+class Client{
+	private static final int BUFFER_SIZE = 1024;
+	private static final int PORT = 6789;
+	private static final String HOSTNAME = "localhost";
+	private static final int BASE_SEQUENCE_NUMBER = 42;
+
+    public static void main(String args[]) throws Exception{
+ 
+		DatagramSocket socket = new DatagramSocket();
+		socket.setSoTimeout( 1000 );
+
+		Integer sequenceNumber = BASE_SEQUENCE_NUMBER;
+
+
+		for (int counter = 0; counter < 10; counter++) {
+			boolean timedOut = true;
+
+			while( timedOut ){
+				sequenceNumber++;
+
+				byte[] sendData = new byte[ BUFFER_SIZE ];
+				byte[] receiveData = new byte[ BUFFER_SIZE ];
+
+				InetAddress IPAddress = InetAddress.getByName( HOSTNAME );
+
+				System.out.println( "Sending Packet (Sequence Number " + sequenceNumber + ")" );				
+
+				sendData = ByteBuffer.allocate(4).putInt( sequenceNumber ).array();
+
+				try{
+
+					DatagramPacket packet = new DatagramPacket(sendData, sendData.length, IPAddress, 6789);
+					socket.send( packet );
+
+					DatagramPacket received = new DatagramPacket(receiveData, receiveData.length);
+					socket.receive( received );
+					
+					int returnMessage = ByteBuffer.wrap( received.getData( ) ).getInt();
+
+					System.out.println( "FROM SERVER:" + returnMessage );
+				
+					timedOut = false;
+				} catch( SocketTimeoutException exception ){
+			
+					System.out.println( "Timeout (Sequence Number " + sequenceNumber + ")" );
+					sequenceNumber--;
+				}
+			}	
+		}
+
+		socket.close();
+   	}
+}

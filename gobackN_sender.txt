@@ -1,0 +1,114 @@
+// import java.io.BufferedReader;
+// import java.io.File;
+// import java.io.FileReader;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketTimeoutException;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+
+public class Sender {
+
+	public static final int MSS = 4;
+
+	public static final double PROBABILITY = 0.1;
+
+
+	public static final int WINDOW_SIZE = 2;
+
+	public static final int TIMER = 30;
+
+
+	public static void main(String[] args) throws Exception{
+
+		int lastSent = 0;
+		
+		int waitingForAck = 0;
+
+		byte[] fileBytes = "ABCDEFGHIJKLMNOPQRSTUVXZ".getBytes();
+
+		System.out.println("Data size: " + fileBytes.length + " bytes");
+		int lastSeq = (int) Math.ceil( (double) fileBytes.length / MSS);
+
+		System.out.println("Number of packets to send: " + lastSeq);
+
+		DatagramSocket toReceiver = new DatagramSocket();
+
+		InetAddress receiverAddress = InetAddress.getByName("localhost");
+		
+		ArrayList<RDTPacket> sent = new ArrayList<RDTPacket>();
+
+		while(true){
+			while(lastSent - waitingForAck < WINDOW_SIZE && lastSent < lastSeq){
+				byte[] filePacketBytes = new byte[MSS];
+
+				filePacketBytes = Arrays.copyOfRange(fileBytes, lastSent*MSS, lastSent*MSS + MSS);
+
+				RDTPacket rdtPacketObject = new RDTPacket(lastSent, filePacketBytes, (lastSent == lastSeq-1) ? true : false);
+
+				byte[] sendData = Serializer.toBytes(rdtPacketObject);
+
+				
+				DatagramPacket packet = new DatagramPacket(sendData, sendData.length, receiverAddress, 9876 );
+
+				System.out.println("Sending packet with sequence number " + lastSent +  " and size " + sendData.length + " bytes");
+
+				sent.add(rdtPacketObject);
+
+				if(Math.random() > PROBABILITY){
+					toReceiver.send(packet);
+				}else{
+					System.out.println("[X] Lost packet with sequence number " + lastSent);
+				}
+
+				lastSent++;
+
+			} 
+	
+			byte[] ackBytes = new byte[40];
+			
+			DatagramPacket ack = new DatagramPacket(ackBytes, ackBytes.length);
+			
+			try{
+				toReceiver.setSoTimeout(TIMER);
+				
+				toReceiver.receive(ack);
+			
+				RDTAck ackObject = (RDTAck) Serializer.toObject(ack.getData());
+				
+				System.out.println("Received ACK for " + ackObject.getPacket());
+				
+				if(ackObject.getPacket() == lastSeq){
+					break;
+				}
+				
+				waitingForAck = Math.max(waitingForAck, ackObject.getPacket());
+				
+			}catch(SocketTimeoutException e){
+				
+				for(int i = waitingForAck; i < lastSent; i++){
+					
+					byte[] sendData = Serializer.toBytes(sent.get(i));
+
+					DatagramPacket packet = new DatagramPacket(sendData, sendData.length, receiverAddress, 9876 );
+		
+					if(Math.random() > PROBABILITY){
+						toReceiver.send(packet);
+					}else{
+						System.out.println("[X] Lost packet with sequence number " + sent.get(i).getSeq());
+					}
+
+					System.out.println("REsending packet with sequence number " + sent.get(i).getSeq() +  " and size " + sendData.length + " bytes");
+				}
+			}
+			
+		
+		}
+		
+		System.out.println("Finished transmission");
+
+	}
+
+}

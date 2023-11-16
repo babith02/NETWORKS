@@ -1,0 +1,107 @@
+import java.io.*;
+import java.net.*;
+
+public class client {
+    private static final int SERV_TCP_PORT = 8080;
+    private static final int MAX = 60;
+
+    public static void main(String[] args) {
+        Socket socket = null;
+        PrintWriter out = null;
+        BufferedReader in = null;
+
+        try {
+            socket = new Socket("127.0.0.1", SERV_TCP_PORT);
+            out = new PrintWriter(socket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            String send, recvline;
+            System.out.println("Enter the source file name : ");
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+            send = userInput.readLine();
+
+            out.println(send);
+
+            while ((recvline = in.readLine()) != null) {
+                System.out.println(recvline);
+            }
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        } finally {
+            try {
+                if (in != null)
+                    in.close();
+                if (out != null)
+                    out.close();
+                if (socket != null)
+                    socket.close();
+            } catch (IOException e) {
+                System.err.println("Error: " + e.getMessage());
+            }
+        }
+    }
+}
+
+
+
+
+
+import java.io.*;
+import java.net.*;
+
+public class server {
+    private static final int SERV_TCP_PORT = 8080;
+    private static final int MAX = 60;
+
+    public static void main(String[] args) {
+        ServerSocket serverSocket = null;
+        Socket clientSocket = null;
+        PrintWriter out = null;
+        BufferedReader in = null;
+
+        try {
+            serverSocket = new ServerSocket(SERV_TCP_PORT);
+            System.out.println("Listening...");
+
+            clientSocket = serverSocket.accept();
+            System.out.println("Client connected");
+
+            out = new PrintWriter(clientSocket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+            String line;
+            File file = new File("test.txt");
+            if (!file.exists() || !file.isFile()) {
+                System.err.println("Error opening file");
+                out.close();
+                in.close();
+                clientSocket.close();
+                serverSocket.close();
+                System.exit(1);
+            }
+
+            BufferedReader fileReader = new BufferedReader(new FileReader(file));
+            while ((line = fileReader.readLine()) != null) {
+                out.println(line);
+            }
+            fileReader.close();
+
+            System.out.println("File Transferred");
+        } catch (IOException e) {
+            System.err.println("Error: " + e.getMessage());
+        } finally {
+            try {
+                if (in != null)
+                    in.close();
+                if (out != null)
+                    out.close();
+                if (clientSocket != null)
+                    clientSocket.close();
+                if (serverSocket != null)
+                    serverSocket.close();
+            } catch (IOException e) {
+                System.err.println("Error: " + e.getMessage());
+            }
+        }
+    }
+}
